@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Registry Module [v1.0]</title>
+    
+    <!-- React Engine -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body { margin: 0; background-color: #0a0a0a; color: #a8a29e; }
+        /* System Font - The hallmark of the Registry */
+        .font-system { font-family: 'Courier New', Courier, monospace; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- [CONFIGURATION] ---
+        // Edit this object for each new project
+        const SYSTEM_DATA = {
+            version: 1, // Natural Numbers Only
+            date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+            protocol: "C+O+2 (Active)",
+            modules: [
+                "Core System",
+                "Secret Registry Module",
+                "Key Listener Service"
+            ]
+        };
+
+        // --- [COMPONENT] Registry Modal ---
+        const RegistryModal = ({ onClose }) => {
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm animate-fade-in">
+                    <div className="relative max-w-lg w-full p-8 border border-stone-700 bg-[#0a0a0a] shadow-[0_0_50px_rgba(255,255,255,0.05)] font-system">
+                        
+                        {/* Close Button */}
+                        <button 
+                            onClick={onClose}
+                            className="absolute top-4 right-4 text-stone-500 hover:text-white transition-colors"
+                        >
+                            [X]
+                        </button>
+                        
+                        {/* Header */}
+                        <h3 className="text-emerald-500 text-xl mb-6 tracking-widest uppercase border-b border-stone-800 pb-2">
+                            System Registry
+                        </h3>
+                        
+                        {/* Metadata Grid */}
+                        <div className="space-y-4 text-stone-300 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-stone-500">Version_ID:</span>
+                                <span className="text-white">{SYSTEM_DATA.version}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-stone-500">Creation_Date:</span>
+                                <span className="text-white">{SYSTEM_DATA.date}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-stone-500">Protocol:</span>
+                                <span className="text-emerald-400">{SYSTEM_DATA.protocol}</span>
+                            </div>
+                            
+                            {/* Feature List */}
+                            <div className="mt-6">
+                                <span className="text-stone-500 block mb-2">Installed_Modules:</span>
+                                <ul className="space-y-1 border-l border-stone-800 pl-4">
+                                    {SYSTEM_DATA.modules.map((mod, i) => (
+                                        <li key={i} className="text-stone-400 hover:text-emerald-400 transition-colors cursor-default">
+                                            {`> ${mod}`}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="mt-8 text-center text-[10px] text-stone-700 uppercase tracking-[0.5em]">
+                            Read Only Memory
+                        </div>
+                    </div>
+                    <style>{`
+                        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+                    `}</style>
+                </div>
+            );
+        };
+
+        // --- [SERVICE] Key Listener ---
+        // Triggers only when C + O + 2 are held for 2 seconds
+        const SecretListener = ({ onTrigger }) => {
+            useEffect(() => {
+                let pressed = new Set();
+                let timer = null;
+
+                const checkCombo = () => {
+                    if (pressed.has('c') && pressed.has('o') && pressed.has('2')) {
+                        if (!timer) {
+                            // console.log("Sequence initiated...");
+                            timer = setTimeout(() => {
+                                onTrigger();
+                                timer = null;
+                            }, 2000); // 2000ms delay
+                        }
+                    } else {
+                        if (timer) {
+                            clearTimeout(timer);
+                            timer = null;
+                        }
+                    }
+                };
+
+                const down = (e) => {
+                    if (e.repeat) return;
+                    pressed.add(e.key.toLowerCase());
+                    checkCombo();
+                };
+
+                const up = (e) => {
+                    pressed.delete(e.key.toLowerCase());
+                    if (timer) {
+                        clearTimeout(timer);
+                        timer = null;
+                    }
+                };
+
+                window.addEventListener('keydown', down);
+                window.addEventListener('keyup', up);
+                return () => {
+                    window.removeEventListener('keydown', down);
+                    window.removeEventListener('keyup', up);
+                    if (timer) clearTimeout(timer);
+                };
+            }, [onTrigger]);
+
+            return null;
+        };
+
+        // --- [APP] Demo Environment ---
+        function App() {
+            const [showRegistry, setShowRegistry] = useState(false);
+
+            return (
+                <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-stone-500 font-system">
+                    <SecretListener onTrigger={() => setShowRegistry(true)} />
+                    
+                    {showRegistry && <RegistryModal onClose={() => setShowRegistry(false)} />}
+
+                    <div className="text-center space-y-4">
+                        <h1 className="text-2xl text-stone-300 tracking-widest uppercase">System Idle</h1>
+                        <p className="text-sm opacity-50">Waiting for Protocol Input...</p>
+                        <div className="p-4 border border-stone-800 text-xs mt-8">
+                            HINT: Hold [ C + O + 2 ] for 2 seconds
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
